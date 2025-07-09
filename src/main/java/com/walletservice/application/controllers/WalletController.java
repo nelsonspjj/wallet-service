@@ -1,14 +1,13 @@
 package com.walletservice.application.controllers;
 
 import com.walletservice.application.services.WalletService;
-import com.walletservice.shared.dtos.IntervalBalanceDTO;
-import com.walletservice.shared.dtos.WalletDTO;
+import com.walletservice.domain.dtos.IntervalBalanceDTO;
+import com.walletservice.domain.dtos.WalletDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

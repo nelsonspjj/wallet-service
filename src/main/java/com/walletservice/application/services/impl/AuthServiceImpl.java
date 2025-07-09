@@ -4,7 +4,7 @@ import com.walletservice.application.services.AuthService;
 import com.walletservice.domain.model.User;
 import com.walletservice.infrastructure.repository.UserRepository;
 import com.walletservice.infrastructure.security.JwtService;
-import com.walletservice.shared.dtos.UserDTO;
+import com.walletservice.domain.dtos.UserDTO;
 import com.walletservice.shared.exception.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

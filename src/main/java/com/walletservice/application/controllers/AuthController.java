@@ -1,7 +1,7 @@
 package com.walletservice.application.controllers;
 
 import com.walletservice.application.services.AuthService;
-import com.walletservice.shared.dtos.UserDTO;
+import com.walletservice.domain.dtos.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -1,10 +1,9 @@
 package com.walletservice.application.services;
 
-import com.walletservice.shared.dtos.IntervalBalanceDTO;
-import com.walletservice.shared.dtos.WalletDTO;
+import com.walletservice.domain.dtos.IntervalBalanceDTO;
+import com.walletservice.domain.dtos.WalletDTO;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public interface WalletService {
     WalletDTO createWallet(String userId);

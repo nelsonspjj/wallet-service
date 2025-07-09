@@ -1,4 +1,4 @@
-package com.walletservice.shared.dtos;
+package com.walletservice.domain.dtos;
 
 import lombok.Data;
 

@@ -3,10 +3,11 @@ package com.walletservice.application.services.impl;
 import com.walletservice.application.services.WalletService;
 import com.walletservice.domain.model.Transaction;
 import com.walletservice.domain.model.Wallet;
+import com.walletservice.infrastructure.config.properties.ConfluentProperties;
 import com.walletservice.infrastructure.repository.TransactionRepository;
 import com.walletservice.infrastructure.repository.WalletRepository;
-import com.walletservice.shared.dtos.IntervalBalanceDTO;
-import com.walletservice.shared.dtos.WalletDTO;
+import com.walletservice.domain.dtos.IntervalBalanceDTO;
+import com.walletservice.domain.dtos.WalletDTO;
 import com.walletservice.shared.exception.InsufficientFundsException;
 import com.walletservice.shared.exception.WalletNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,14 +30,11 @@ public class WalletServiceImpl implements WalletService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final ConfluentProperties confluentProperties;
 
     @Lazy
     @Autowired
     private WalletService self;
-
-    public void sendTestMessage() {
-        kafkaTemplate.send("wallet-transactions", "Test message from WalletService");
-    }
 
     @Override
     public WalletDTO createWallet(String userId) {
@@ -83,7 +80,7 @@ public class WalletServiceImpl implements WalletService {
         wallet.deposit(amount);
         walletRepository.save(wallet);
         transactionRepository.save(new Transaction(userId, amount, "DEPOSIT"));
-        kafkaTemplate.send("wallet-transactions", "Deposited " + amount + " to wallet of user " + userId);
+        kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Deposited " + amount + " to wallet of user " + userId);
         return wallet.getBalance();
     }
 
@@ -97,7 +94,7 @@ public class WalletServiceImpl implements WalletService {
         wallet.withdraw(amount);
         walletRepository.save(wallet);
         transactionRepository.save(new Transaction(userId, amount, "WITHDRAW"));
-        kafkaTemplate.send("wallet-transactions", "Withdrew " + amount + " from wallet of user " + userId);
+        kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Withdrew " + amount + " from wallet of user " + userId);
         return wallet.getBalance();
     }
 
@@ -105,6 +102,6 @@ public class WalletServiceImpl implements WalletService {
     public void transfer(String fromUserId, String toUserId, double amount) {
         self.withdraw(fromUserId, amount);
         self.deposit(toUserId, amount);
-        kafkaTemplate.send("wallet-transactions", "Transferred " + amount + " from user " + fromUserId + " to user " + toUserId);
+        kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Transferred " + amount + " from user " + fromUserId + " to user " + toUserId);
     }
 }

@@ -1,6 +1,6 @@
 package com.walletservice.application.services;
 
-import com.walletservice.shared.dtos.UserDTO;
+import com.walletservice.domain.dtos.UserDTO;
 
 public interface AuthService {
     String register(UserDTO userDTO);
