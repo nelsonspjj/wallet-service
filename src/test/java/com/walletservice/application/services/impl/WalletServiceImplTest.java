@@ -2,6 +2,7 @@ package com.walletservice.application.services.impl;
 
 import com.walletservice.domain.dtos.IntervalBalanceDTO;
 import com.walletservice.domain.dtos.WalletDTO;
+import com.walletservice.domain.enums.TransactionType;
 import com.walletservice.domain.model.Transaction;
 import com.walletservice.domain.model.Wallet;
 import com.walletservice.infrastructure.config.properties.ConfluentProperties;
@@ -93,7 +94,7 @@ public class WalletServiceImplTest {
         when(walletRepository.findByUserId(userId)).thenReturn(wallet);
         when(walletRepository.save(wallet)).thenReturn(wallet);
 
-        Double newBalance = walletService.deposit(userId, 50.0);
+        Double newBalance = walletService.deposit(userId, 50.0, TransactionType.DEPOSIT.getType());
 
         assertEquals(150.0, newBalance);
         verify(transactionRepository).save(any(Transaction.class));

@@ -1,6 +1,7 @@
 package com.walletservice.application.services.impl;
 
 import com.walletservice.application.services.WalletService;
+import com.walletservice.domain.enums.TransactionType;
 import com.walletservice.domain.model.Transaction;
 import com.walletservice.domain.model.Wallet;
 import com.walletservice.infrastructure.config.properties.ConfluentProperties;
@@ -56,17 +57,20 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public IntervalBalanceDTO getBalanceBetween(String userId, LocalDateTime start, LocalDateTime end) {
+        log.info("Fetching history balance between {} and {} for userId: {}", start, end, userId);
         List<Transaction> before = transactionRepository.findByUserIdAndTimestampBefore(userId, start);
         double initial = 0.0;
         for (Transaction tx : before) {
-            initial += "DEPOSIT".equalsIgnoreCase(tx.getType()) ? tx.getAmount() : -tx.getAmount();
+            initial += (TransactionType.DEPOSIT.getType().equalsIgnoreCase(tx.getType()) ||
+                    TransactionType.TRANSFER.getType().equalsIgnoreCase(tx.getType())) ? tx.getAmount() : -tx.getAmount();
         }
 
         List<Transaction> intervalTx = transactionRepository.findByUserIdAndTimestampBetween(userId, start, end);
 
         double finalBalance = initial;
         for (Transaction tx : intervalTx) {
-            finalBalance += "DEPOSIT".equalsIgnoreCase(tx.getType()) ? tx.getAmount() : -tx.getAmount();
+            finalBalance += (TransactionType.DEPOSIT.getType().equalsIgnoreCase(tx.getType()) ||
+            TransactionType.TRANSFER.getType().equalsIgnoreCase(tx.getType())) ? tx.getAmount() : -tx.getAmount();
         }
 
         return new IntervalBalanceDTO(userId, start, end, initial, intervalTx, finalBalance);
@@ -75,25 +79,28 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     @CachePut(value = "wallets", key = "#userId")
-    public Double deposit(String userId, double amount) {
+    public Double deposit(String userId, double amount, String transactionType) {
+        log.info("Depositing and transferring for  userId: {}", userId);
+        String type = transactionType.equalsIgnoreCase(TransactionType.DEPOSIT.getType()) ? "Deposited " : "Transferred ";
         Wallet wallet = walletRepository.findByUserId(userId);
         wallet.deposit(amount);
         walletRepository.save(wallet);
-        transactionRepository.save(new Transaction(userId, amount, "DEPOSIT"));
-        kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Deposited " + amount + " to wallet of user " + userId);
+        transactionRepository.save(new Transaction(userId, amount, transactionType));
+        kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), type + amount + " to wallet of user " + userId);
         return wallet.getBalance();
     }
 
     @Override
     @CachePut(value = "wallets", key = "#userId")
     public Double withdraw(String userId, double amount) {
+        log.info("Withdrawing of userId: {}", userId);
         Wallet wallet = walletRepository.findByUserId(userId);
         if (amount > wallet.getBalance()) {
             throw new InsufficientFundsException("Insufficient funds");
         }
         wallet.withdraw(amount);
         walletRepository.save(wallet);
-        transactionRepository.save(new Transaction(userId, amount, "WITHDRAW"));
+        transactionRepository.save(new Transaction(userId, amount, TransactionType.WITHDRAW.getType()));
         kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Withdrew " + amount + " from wallet of user " + userId);
         return wallet.getBalance();
     }
@@ -101,7 +108,7 @@ public class WalletServiceImpl implements WalletService {
     @Override
     public void transfer(String fromUserId, String toUserId, double amount) {
         self.withdraw(fromUserId, amount);
-        self.deposit(toUserId, amount);
+        self.deposit(toUserId, amount, TransactionType.TRANSFER.getType());
         kafkaTemplate.send(confluentProperties.getTopicNameWalletTransactions(), "Transferred " + amount + " from user " + fromUserId + " to user " + toUserId);
     }
 }

@@ -3,6 +3,7 @@ package com.walletservice.application.controllers;
 import com.walletservice.application.services.WalletService;
 import com.walletservice.domain.dtos.IntervalBalanceDTO;
 import com.walletservice.domain.dtos.WalletDTO;
+import com.walletservice.domain.enums.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,7 @@ public class WalletController {
 
     @PostMapping("/{userId}/deposit")
     public void deposit(@PathVariable String userId, @RequestParam double amount) {
-        walletService.deposit(userId, amount);
+        walletService.deposit(userId, amount, TransactionType.DEPOSIT.getType());
     }
 
     @PostMapping("/{userId}/withdraw")

@@ -32,10 +32,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(UserDTO userDTO) {
+        log.info("Attempting to login user: " + userDTO.getUsername());
         User user = userRepository.findByUsername(userDTO.getUsername());
         if (user == null || !user.getPassword().equals(userDTO.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
+        log.info("User logged in successfully: " + user.getUsername());
         return jwtService.generateToken(user);
     }
 }

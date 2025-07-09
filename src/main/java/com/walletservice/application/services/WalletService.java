@@ -9,7 +9,7 @@ public interface WalletService {
     WalletDTO createWallet(String userId);
     Double getBalance(String userId);
     IntervalBalanceDTO getBalanceBetween(String userId, LocalDateTime start, LocalDateTime end);
-    Double deposit(String userId, double amount);
+    Double deposit(String userId, double amount, String transactionType);
     Double withdraw(String userId, double amount);
     void transfer(String fromUserId, String toUserId, double amount);
 }
